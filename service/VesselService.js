@@ -1,0 +1,1 @@
+const {} = require('../firebase/firebaseMethods.js');
