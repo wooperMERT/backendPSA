@@ -1,22 +1,15 @@
-// Import necessary Firebase modules
-const { initializeApp } = require("firebase/app");
-const { getFirestore, collection, addDoc, getDocs } = require("firebase/firestore");
-require("dotenv").config();  // Loads the environment variables from the .env file
+// Import necessary Firebase Admin SDK modules
+const admin = require('firebase-admin');
+const serviceAccount = require('./serviceAccountKey.json');
 
-// Firebase configuration using environment variables
-const firebaseConfig = {
-  apiKey: "",
-  authDomain: "wooper-f2100.firebaseapp.com",
-  projectId: "wooper-f2100",
-  storageBucket: "wooper-f2100.appspot.com",
-  messagingSenderId: "455583231154",
-  appId: "1:455583231154:web:67d90a1f1640bd78aeedab",
-  measurementId: "G-NQ7HP5FPYF"
-};
+// Initialize Firebase Admin SDK
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://wooper-f2100.firebaseio.com" // Replace with your actual database URL if you're using Realtime Database
+});
 
-// Initialize Firebase and Firestore
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+// Initialize Firestore
+const db = admin.firestore();
 
 // Firestore Write (Add Data)
 const storeCrisisData = async (crisisData) => {
@@ -28,8 +21,8 @@ const storeCrisisData = async (crisisData) => {
     if (!crisisData || !crisisData.title || !crisisData.area || typeof crisisData.delayInHours !== 'number') {
       throw new Error("Invalid data structure");
     }
-    
-    const docRef = await addDoc(collection(db, 'crises'), crisisData);
+
+    const docRef = await db.collection('crises').add(crisisData);
     console.log('Document written with ID: ', docRef.id);
   } catch (error) {
     console.error('Error adding document: ', error.message);
@@ -39,7 +32,7 @@ const storeCrisisData = async (crisisData) => {
 // Firestore Read (Get Data)
 const fetchCrisesData = async () => {
   try {
-    const querySnapshot = await getDocs(collection(db, 'crises'));
+    const querySnapshot = await db.collection('crises').get();
     const crises = querySnapshot.docs.map(doc => doc.data());
     return crises;
   } catch (error) {
@@ -61,8 +54,9 @@ const crisisDataExample = {
   latitude1: 30.00,
   longitude1: -87.63,
   latitude2: 40.00,
-  longtitude2: -80.00,
+  longitude2: -80.00,
   publishedAt: new Date(),
+  accepted: false
 };
 
 // Call the storeCrisisData function to add a crisis
