@@ -90,21 +90,65 @@ const updateSpecificVesselData = async (vessel) => {
 };
 
 // RECORD RELATED //////////////////////////////////////
-const fetchSpecificRecordData = async (shipName, newsTitle) => {
+const fetchSpecificRecordData = async (newsTitle) => {
   try {
+    const recordsCollection = db.collection("record");
+    const querySnapshot = await recordsCollection
+      .where("newsTitle", "==", newsTitle)
+      .get();
 
+    if (querySnapshot.empty) {
+      console.log("No matching records found.");
+      return [];
+    }
+
+    // Extract the document data
+    const specificRecordsData = [];
+    querySnapshot.forEach((docSnapshot) => {
+      console.log("Document data:", docSnapshot.data()); // Debugging output
+      specificRecordsData.push({
+        recordId: docSnapshot.id,
+        ...docSnapshot.data(),
+      });
+    });
+
+    console.log("Fetched specific records data:", specificRecordsData);
+
+    return specificRecordsData;
   } catch (error) {
     console.error('Error adding document: ', error.message);
   }
 };
 
-const fetchAllByNewsRecordData = async (newsTitle) => {
+const fetchAllByNewsRecordData = async () => {
   try {
-    
+    const recordsCollection = db.collection("record");
+    const querySnapshot = await recordsCollection.get();
+
+    if (querySnapshot.empty) {
+      console.log("No records found.");
+      return [];
+    }
+
+    const recordsData = [];
+    querySnapshot.forEach((docSnapshot) => {
+      console.log("Document data:", docSnapshot.data()); // Debug the data for each document
+      recordsData.push({
+        recordId: docSnapshot.id,
+        ...docSnapshot.data(),
+      });
+    });
+
+    console.log("Fetched records data:", recordsData); // Debug the final array
+
+    return recordsData;
   } catch (error) {
-    console.error('Error adding document: ', error.message);
+    console.error('Error fetching records:', error.message);
+    return [];
   }
 };
+
+
 
 const addRecordData = async (record) => {
   try {
