@@ -38,29 +38,60 @@ const calculateSeaRouteWithWaypoints = async (startCoordinates, endCoordinates, 
     }
 };
 
-// Function to calculate and return waypoints and port order
+// Function to build an adjacency list (graph) of distances and waypoints between ports
+const buildAdjacencyList = async (portOrder, avoidZones) => {
+    const adjList = Array(portOrder.length).fill(null).map(() => []);
+    const waypointsMatrix = Array(portOrder.length).fill(null).map(() => []);
+
+    for (let i = 0; i < portOrder.length; i++) {
+        for (let j = 0; j < portOrder.length; j++) {
+            if (i !== j) {
+                const start = portOrder[i].geopoint;
+                const end = portOrder[j].geopoint;
+                const { distance, waypoints } = await calculateSeaRouteWithWaypoints(start, end, avoidZones);
+
+                // Store both the distance and the waypoints
+                adjList[i].push([j, distance]);
+                waypointsMatrix[i].push(waypoints);
+            }
+        }
+    }
+    return { adjList, waypointsMatrix };
+};
+
+// Function to get new port order and waypoints for each leg using Dijkstra's algorithm
 const getWaypointsAndPortOrder = async (portOrder, avoidZones) => {
+    // Step 1: Build the adjacency list with distances and waypoints
+    const { adjList, waypointsMatrix } = await buildAdjacencyList(portOrder, avoidZones);
+
+    const startCity = 0;  // Assume starting from the first port in the order
+    const { distances, previousCity } = dijkstraWithWaitTimes(startCity, adjList, Array(portOrder.length).fill(0));  // Step 2: Apply Dijkstra
+
+    // Reconstruct the shortest path
+    const newPortOrderIndexes = reconstructPath(previousCity, portOrder.length - 1);
+
+    // Reorder the ports based on the shortest path
+    const newPortOrder = newPortOrderIndexes.map(index => portOrder[index]);
+
+    // Step 3: Gather waypoints for each leg in the new port order
     let totalNewDistance = 0;
-    let allWaypoints = [];
+    const waypointsPerLeg = [];
 
-    console.log("New Port Order (Shortest Path with All Ports):");
-    for (let i = 0; i < portOrder.length - 1; i++) {
-        const start = portOrder[i].geopoint;
-        const end = portOrder[i + 1].geopoint;
-        const { distance, waypoints } = await calculateSeaRouteWithWaypoints(start, end, avoidZones);
+    for (let i = 0; i < newPortOrderIndexes.length - 1; i++) {
+        const startIndex = newPortOrderIndexes[i];
+        const endIndex = newPortOrderIndexes[i + 1];
 
-        totalNewDistance += distance;
-        allWaypoints.push(...waypoints); // Combine waypoints from each leg
-
-        console.log(`Distance from ${portOrder[i].name} to ${portOrder[i + 1].name}: ${distance} meters`);
+        totalNewDistance += adjList[startIndex][endIndex][1];  // Add the stored distance
+        waypointsPerLeg.push(waypointsMatrix[startIndex][endIndex]);  // Add waypoints for this leg
     }
 
     return {
         totalNewDistance,
-        portOrder,  // Returning the port order
-        allWaypoints,  // Returning all waypoints combined
+        portOrder: newPortOrder,  // Returning the reordered port order
+        waypointsPerLeg,  // Returning an array of waypoints for each leg
     };
 };
+
 
 // // Main function
 // const main = async () => {
