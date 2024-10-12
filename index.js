@@ -11,13 +11,13 @@ dotenv.config(); // Load .env into environment variables
 
 // Welcome
 app.get('/', (req, res) => {
-  res.send('Maritime Port Management API is running.');
+    res.send('Maritime Port Management API is running.');
 });
 
 // Start the HTTP server on PORT 3001
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`Server is running on http://localhost:${PORT}`);
 });
 
 // WebSocket server on a different port (3002)
@@ -45,6 +45,16 @@ const broadcastMessage = () => {
         }
     });
 };
+
+// API route for sea distance
+app.use('/api/seaDistance', async (req, res) => {
+    try {
+        const result = await getWaypointsAndPortOrder(req.body); // Assume you're passing required body
+        res.json(result);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
 setInterval(broadcastMessage, 5000);
 
