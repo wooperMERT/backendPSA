@@ -51,30 +51,3 @@ module.exports = {
     dijkstraWithWaitTimes,
     reconstructPath,
 };
-
-const cities = ["CityA", "CityB", "CityC", "CityD"]; // Example cities
-const waitTimes = [10, 5, 15, 7]; // Wait times for each city (CityA, CityB, CityC, CityD)
-
-// Adjacency list representing the graph (city -> [[neighbor, travel_time], ...])
-const adjList = [
-    [[1, 20], [2, 30]], // CityA connects to CityB (distance 20) and CityC (distance 30)
-    [[0, 20], [3, 10]], // CityB connects to CityA (distance 20) and CityD (distance 10)
-    [[0, 30], [3, 25]], // CityC connects to CityA (distance 30) and CityD (distance 25)
-    [[1, 10], [2, 25]], // CityD connects to CityB (distance 10) and CityC (distance 25)
-];
-
-// Start city (e.g., index of CityA is 0)
-const startCity = 0;
-
-// Run Dijkstra's algorithm to get shortest times and paths
-const { distances, previousCity } = dijkstraWithWaitTimes(startCity, adjList, waitTimes);
-
-// Output the shortest times from the start city to all other cities
-for (let i = 0; i < cities.length; i++) {
-    console.log(`Shortest time from ${cities[startCity]} to ${cities[i]}: ${distances[i]} units`);
-}
-
-// Example: Reconstruct the path from start city to a specific target city (e.g., CityD)
-const targetCity = 3; // CityD
-const path = reconstructPath(previousCity, targetCity);
-console.log(`Path from ${cities[startCity]} to ${cities[targetCity]}: ${path.map(cityIndex => cities[cityIndex])}`);
