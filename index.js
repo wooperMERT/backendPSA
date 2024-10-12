@@ -4,39 +4,25 @@ const express = require('express');
 const axios = require('axios');
 const app = express();
 const WebSocket = require('ws');
-// Routes
-const vesselRoutes = require('./routes/vessels');
-const { fetchSeaRoute } = require("./searoute");
-const fetchNewsByDateAndCategory = require('./service/NewsService')
-//import { fetchNewsByDateAndCategory } from './service/NewsService';
 
 // Middleware
-app.use(express.json()); //Parse incoming JSON
-dotenv.config(); // load .env into environment variables
-
-fetchNewsByDateAndCategory("2005-09-23","Weather");
+app.use(express.json()); // Parse incoming JSON
+dotenv.config(); // Load .env into environment variables
 
 // Welcome
 app.get('/', (req, res) => {
   res.send('Maritime Port Management API is running.');
 });
 
-app.get("/sea-route", fetchSeaRoute);
-
-
-// Route paths
-app.use('/api/vessels', vesselRoutes);  // API route for vessels
-
-
-
-// Start the server
-const PORT = process.env.PORT || 3000;
+// Start the HTTP server on PORT 3001
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
 
-// WebSocket server
-const wss = new WebSocket.Server({ port: PORT });
+// WebSocket server on a different port (3002)
+const WEBSOCKET_PORT = process.env.WS_PORT || 3002;
+const wss = new WebSocket.Server({ port: WEBSOCKET_PORT });
 
 let clients = [];
 
@@ -62,4 +48,4 @@ const broadcastMessage = () => {
 
 setInterval(broadcastMessage, 5000);
 
-console.log('WebSocket server started on ws://localhost:8080');
+console.log(`WebSocket server started on ws://localhost:${WEBSOCKET_PORT}`);
