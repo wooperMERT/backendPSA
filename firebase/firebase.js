@@ -60,6 +60,8 @@ const crisisDataExample = {
   delayInHours: 12,
   latitude1: 30.00,
   longitude1: -87.63,
+  latitude2: 40.00,
+  longtitude2: -80.00,
   publishedAt: new Date(),
 };
 
