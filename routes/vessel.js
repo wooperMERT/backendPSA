@@ -1,4 +1,5 @@
 import express from 'express';
+import { fetchAllVesselData } from '../firebase/firebaseMethods';
 
 const router = express.Router();
 
@@ -6,7 +7,8 @@ const router = express.Router();
 router.post('/', (req, res) => {
   const { vesselId, newRoute } = req.body;
   // Logic to handle reroute recommendation
-  res.json({ message: `Reroute suggested for vessel ${vesselId} to ${newRoute}` });
+  const data = fetchAllVesselData();
+  res.json(data);
 });
 
 router.post('/hi', (req, res) => {
