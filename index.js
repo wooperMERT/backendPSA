@@ -5,6 +5,9 @@ const axios = require('axios');
 const app = express();
 const WebSocket = require('ws');
 const cors = require('cors');
+
+const { updateNewsData } = require('./service/NewsService');
+const { updateAppointments } = require('./firebase/firebaseMethods');
 // routers
 const recordRouter = require('./routes/record');
 const vesselRouter = require('./routes/vessel')
@@ -12,7 +15,7 @@ const newsRouter = require('./routes/news');
 
 // Time
 const currentDateTime = new Date('2024-10-13T10:30:00Z');
-const increaseTime = () => {currentDateTime.setHours(currentDateTime.getHours() + 1);};
+const increaseTime = () => { currentDateTime.setHours(currentDateTime.getHours() + 1); };
 
 
 // Middleware
@@ -20,10 +23,13 @@ app.use(express.json()); // Parse incoming JSON
 dotenv.config(); // Load .env into environment variables
 app.use(cors());
 
-// Welcome
-app.get('/', (req, res) => {
-    res.json('Maritime Port Management API is running.');
+// Time Increase
+app.post('/', async (req, res) => {
+    timeStepOver();
+    broadcastMessage();
+    res.json("hi");
 });
+
 
 
 // Route
@@ -54,7 +60,7 @@ wss.on('connection', (ws) => {
 });
 
 const broadcastMessage = () => {
-    const message = JSON.stringify({ message: 'Hello from the server', timestamp:  currentDateTime});
+    const message = JSON.stringify({ message: 'Hello from the server', timestamp: currentDateTime });
     clients.forEach(client => {
         if (client.readyState === WebSocket.OPEN) {
             client.send(message);
@@ -76,15 +82,9 @@ setInterval(broadcastMessage, 5000);
 
 console.log(`WebSocket server started on ws://localhost:${WEBSOCKET_PORT}`);
 
-
-
-
-
-
 const timeStepOver = async () => {
-    increaseTime(); //increase time variable
-    updateVesselData(); //update vessel moving
-    updateNewsData(); //receive new News and add to database
-    updateAppointments(); //update appointments that occured
-    
+    //updateVesselData(); //update vessel moving
+    //updateNewsData(); //receive new News and add to database
+    //updateAppointments(currentDateTime); //update appointments that occured
+    increaseTime(); //increase time variable - DONE
 }
