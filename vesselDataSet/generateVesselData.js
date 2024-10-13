@@ -4,24 +4,63 @@ const { db } = require('../firebase/firebaseMethods');
 const { getFirestore, doc, setDoc, collection } = require('firebase/firestore');
 const { getWayPointsAndPortOrder } = require('../ports/service/seaDistanceService');
 
-
-//Give 
-function generateRoute(ports, avoidZones, startPoint) {
-    const truncatedRoute = [];
-
-    const details = getWayPointsAndPortOrder(ports, avoidZones, startPoint);
-    const route = details.allWaypoints;
-
-    //every 10 waypoints is 20km
-    const steps = 10;
-    
-    for (i = 0 ; i < route.length; i+= steps) {
-        truncatedRoute = route[i];
+// Function to fetch vessel data from Firestore
+async function getVesselData(vesselId) {
+    try {
+        const vesselDoc = await db.collection('vesselData').doc(vesselId).get();
+        if (!vesselDoc.exists) {
+            throw new Error('Vessel data not found');
+        }
+        return vesselDoc.data();
+    } catch (error) {
+        console.error('Error fetching vessel data:', error);
     }
-
-    
-    return truncatedRoute;
 }
+
+// Function to fetch news data for avoid zones
+async function getAvoidZones() {
+    try {
+        const newsCollection = await db.collection('news').get();
+        const avoidZones = [];
+        
+        newsCollection.forEach(doc => {
+            const data = doc.data();
+            if (data.avoidZones && data.avoidZones.length > 0) {
+                avoidZones.push(...data.avoidZones);
+            }
+        });
+
+        return avoidZones;
+    } catch (error) {
+        console.error('Error fetching avoid zones:', error);
+    }
+}
+
+async function generateVesselRoute(vesselId) {
+    try {
+        const vesselData = await getVesselData(vesselId); // Fetch vessel data
+        const avoidZones = await getAvoidZones(); // Fetch avoid zones
+        const startPoint = vesselData.portStops[0]; // Assuming first port as the starting point
+        
+        // Now, use the data to generate the route
+        const details = getWayPointsAndPortOrder(vesselData.portStops, avoidZones, [startPoint.latitude, startPoint.longitude]);
+        const route = details.allWaypoints;
+
+        const truncatedRoute = [];
+        const steps = 10;
+
+        // Truncate the waypoints every 10 steps (as 20km)
+        for (let i = 0; i < route.length; i += steps) {
+            truncatedRoute.push(route[i]);
+        }
+
+        return truncatedRoute;
+    } catch (error) {
+        console.error('Error generating vessel route:', error);
+    }
+}
+
+
 
 // Function to generate a random number of unique ports
 function getRandomPorts(num) {
