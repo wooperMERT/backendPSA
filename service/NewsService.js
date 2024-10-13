@@ -6,7 +6,7 @@ const NEWS_API_KEY = APIkeys.NEWS_API_KEY;
 const OPENAI_API_KEY = APIkeys.OPENAI_API_KEY;
 
 
-const baseQuery = 'You are a manager for a shipping company. You will be provided with the following news content and judge whether does the event is significant enough to close down a sea route for your ship. Map out a square area to showcase the affected area. Only reply me one of these 2 answers. Reply me "signficiant-%area%-%latitude1%-%longitude1%-%latitude2%-%longitude2%" if it is significant, where %area% is the name of the affected area, where %longitude1% and %latitude1% are the coordinates to represent the top left corner of the affected square, where %longitude2% and %latitude2% are the coordinates to represent the bottom right corner of the affected square. Reply me "insigificant" if it is not significant.'
+const baseQuery = 'You are a manager for a shipping company. You will be provided with the following news content and judge whether does the event is significant enough to close down a sea route for your ship. Map out a square area to showcase the affected area. Only reply me one of these 2 answers. Reply me "signficiant-%area%-%latitude1%-%longitude1%-%latitude2%-%longitude2%-%strait%" if it is significant, where %strait% is the strait where the event is happening (or the closest strait), where %area% is the name of the affected area, where %longitude1% and %latitude1% are the coordinates to represent the top left corner of the affected square, where %longitude2% and %latitude2% are the coordinates to represent the bottom right corner of the affected square. Reply me "insigificant" if it is not significant.'
 const category = 'weather, maritime, sea';
 
 // Function to fetch news for a specific date and category
@@ -79,6 +79,7 @@ const queryMultipleOpenAI = async (articles) => {
                 longitude1: items[3],
                 latitude2: items[4],
                 longitude2: items[5],
+                strait: items[6],
             };
         })
     );
