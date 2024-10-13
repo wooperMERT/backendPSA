@@ -25,6 +25,41 @@ const addNewsData = async (newsData) => {
   }
 };
 
+const fetchNewsState = async (title) => {
+  try {
+    // Query the Firestore collection to find the document by title
+    const querySnapshot = await db.collection('news').where('title', '==', title).get();
+
+    if (!querySnapshot.empty) {
+      const doc = querySnapshot.docs[0];
+      return doc.accepted;
+    } else {
+      throw new Error(`No article found with the title "${title}".`);
+    }
+  } catch (error) {
+    console.error("Error updating article:", error);
+    throw new Error("Error updating article.");
+  }
+}
+
+const updateNewsAccept = async (title, accepted) => {
+  try {
+    // Query the Firestore collection to find the document by title
+    const querySnapshot = await db.collection('news').where('title', '==', title).get();
+
+    if (!querySnapshot.empty) {
+      const doc = querySnapshot.docs[0];
+      await doc.ref.update({ accepted });
+      return { message: `Article titled "${title}" updated successfully.` };
+    } else {
+      throw new Error(`No article found with the title "${title}".`);
+    }
+  } catch (error) {
+    console.error("Error updating article:", error);
+    throw new Error("Error updating article.");
+  }
+}
+
 const fetchAllNewsData = async () => {
   try {
     const querySnapshot = await db.collection('news').get();
@@ -233,4 +268,19 @@ const addAppointmentData = async (appointment) => {
   }
 };
 
-module.exports = {fetchSpecificVesselDataID, fetchSpecificVesselDataName,fetchAllVesselData, updateSpecificVesselData, addRecordData, fetchSpecificRecordData, fetchAllByNewsRecordData, addNewsData, fetchAllNewsData, fetchAllByPortAppointmentData, fetchSpecificAppointmentData, updateSpecificAppointmentData, addAppointmentData, db}
+// Export the functions for use in other files
+module.exports = {fetchSpecificVesselDataID, 
+                  fetchSpecificVesselDataName,
+                  fetchAllVesselData, 
+                  updateSpecificVesselData, 
+                  addRecordData, 
+                  fetchSpecificRecordData, 
+                  fetchAllByNewsRecordData, 
+                  addNewsData, 
+                  fetchNewsState,
+                  updateNewsAccept,
+                  fetchAllNewsData, 
+                  fetchAllByPortAppointmentData, 
+                  fetchSpecificAppointmentData, 
+                  updateSpecificAppointmentData, 
+                  addAppointmentData}
