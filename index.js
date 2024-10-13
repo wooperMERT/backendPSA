@@ -4,15 +4,23 @@ const express = require('express');
 const axios = require('axios');
 const app = express();
 const WebSocket = require('ws');
+const cors = require('cors');
+// routers
+const recordRouter = require('./routes/record');
 
 // Middleware
 app.use(express.json()); // Parse incoming JSON
 dotenv.config(); // Load .env into environment variables
+app.use(cors());
 
 // Welcome
 app.get('/', (req, res) => {
-    res.send('Maritime Port Management API is running.');
+    res.json('Maritime Port Management API is running.');
 });
+
+
+// Route
+app.use('/api/record', recordRouter);
 
 // Start the HTTP server on PORT 3001
 const PORT = process.env.PORT || 3001;
