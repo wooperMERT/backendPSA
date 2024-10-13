@@ -2,28 +2,25 @@ const { faker } = require('@faker-js/faker');
 const { psaPortsCoordinates } = require('./ports');
 const { db } = require('../firebase/firebaseMethods');
 const { getFirestore, doc, setDoc, collection } = require('firebase/firestore');
+const { getWayPointsAndPortOrder } = require('../ports/service/seaDistanceService');
 
-// Helper function to generate random routes through a series of ports
-function generateRoute(ports, steps = 24) {
-    const route = [];
+
+//Give 
+function generateRoute(ports, avoidZones, startPoint) {
+    const truncatedRoute = [];
+
+    const details = getWayPointsAndPortOrder(ports, avoidZones, startPoint);
+    const route = details.allWaypoints;
+
+    //every 10 waypoints is 20km
+    const steps = 10;
     
-    // Loop through each port to create route segments
-    for (let i = 0; i < ports.length - 1; i++) {
-        const start = ports[i];
-        const end = ports[i + 1];
-        
-        const latStep = (end.latitude - start.latitude) / steps;
-        const lonStep = (end.longitude - start.longitude) / steps;
-
-        for (let j = 0; j <= steps; j++) {
-            route.push({
-                latitude: start.latitude + latStep * j,
-                longitude: start.longitude + lonStep * j
-            });
-        }
+    for (i = 0 ; i < route.length; i+= steps) {
+        truncatedRoute = route[i];
     }
+
     
-    return route;
+    return truncatedRoute;
 }
 
 // Function to generate a random number of unique ports
