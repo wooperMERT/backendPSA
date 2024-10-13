@@ -106,6 +106,16 @@ const fetchSpecificVesselDataName = async (shipName) => {
   }
 };
 
+async function saveVesselData(vessel) {
+  try {
+      const docRef = db.collection("vesselData").doc(`vessel_${vessel.info.MMSI}`); // Create document reference
+      await docRef.set(vessel);
+      console.log("Document written with ID: ", docRef.id);
+  } catch (error) {
+      console.error("Error adding document: ", error);
+  }
+}
+
 async function fetchSpecificVesselDataID(mmsi) {
     try {
         const docRef = db.collection("vesselData").doc(`vessel_${mmsi}`);
@@ -280,6 +290,7 @@ module.exports = {fetchSpecificVesselDataID,
                   fetchNewsState,
                   updateNewsAccept,
                   fetchAllNewsData, 
+                  saveVesselData,
                   fetchAllByPortAppointmentData, 
                   fetchSpecificAppointmentData, 
                   updateSpecificAppointmentData, 

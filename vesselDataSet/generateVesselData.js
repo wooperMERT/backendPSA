@@ -1,7 +1,6 @@
 const { faker } = require('@faker-js/faker');
 const { psaPortsCoordinates } = require('./ports');
-const { db } = require('../firebase/firebaseMethods');
-const { getFirestore, doc, setDoc, collection } = require('firebase/firestore');
+const {saveVesselData} = require("../firebase/firebaseMethods")
 
 // Helper function to generate random routes through a series of ports
 function generateRoute(ports, steps = 24) {
@@ -109,17 +108,6 @@ const vesselData = Array.from({ length: 100 }, () => {
 /*console.log(vesselData[1]);
 console.log(vesselData[1].routes[1]);
 console.log(vesselData[1].portStops[1]);*/
-
-// Function to save vessel data to Firestore
-async function saveVesselData(vessel) {
-    try {
-        const docRef = db.collection("vesselData").doc(`vessel_${vessel.info.MMSI}`); // Create document reference
-        await docRef.set(vessel);
-        console.log("Document written with ID: ", docRef.id);
-    } catch (error) {
-        console.error("Error adding document: ", error);
-    }
-}
 
 saveVesselData(vesselData[1]);
 
