@@ -66,13 +66,14 @@ const fetchSpecificVesselDataName = async (shipName) => {
     const snapshot = await db.collection("vesselData").where("info.ShipName", "==", shipName).get();
 
     if (snapshot.empty) {
-        console.error('No matching documents found!');
+      console.error('No matching documents found!');
     }
 
-    snapshot.forEach(doc => {
-        console.log('Document data:', doc.id, '=>', doc.data());
-        // Process each document data as needed
-    });
+    // Get the first document
+    const doc = snapshot.docs[0];
+    const shipData = doc.data(); // Get the document data
+
+    return shipData;
   } catch (error) {
     console.error('Error adding document: ', error.message);
   }
@@ -241,4 +242,4 @@ const addAppointmentData = async (appointment) => {
 };
 
 // Export the functions for use in other files
-module.exports = {fetchSpecificVesselDataID, fetchAllVesselData, updateSpecificVesselData, addRecordData, fetchSpecificRecordData, fetchAllByNewsRecordData, addNewsData, fetchAllNewsData, fetchAllByPortAppointmentData, fetchSpecificAppointmentData, updateSpecificAppointmentData, addAppointmentData, db}
+module.exports = {fetchSpecificVesselDataID, fetchSpecificVesselDataName,fetchAllVesselData, updateSpecificVesselData, addRecordData, fetchSpecificRecordData, fetchAllByNewsRecordData, addNewsData, fetchAllNewsData, fetchAllByPortAppointmentData, fetchSpecificAppointmentData, updateSpecificAppointmentData, addAppointmentData, db}

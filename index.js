@@ -7,6 +7,7 @@ const WebSocket = require('ws');
 const cors = require('cors');
 // routers
 const recordRouter = require('./routes/record');
+const vesselRouter = require('./routes/vessel')
 const newsRouter = require('./routes/news');
 
 // Middleware
@@ -22,6 +23,7 @@ app.get('/', (req, res) => {
 
 // Route
 app.use('/api/record', recordRouter);
+app.use('/api/vessel', vesselRouter);
 app.use('/api/news', newsRouter);
 
 // Start the HTTP server on PORT 3001
