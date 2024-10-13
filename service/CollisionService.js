@@ -1,4 +1,5 @@
 // isShipPathInDangerousSquare.js
+const {fetchSpecificVesselDataID} = require('../firebase/firebaseMethods')
 
 function isPointInSquare(lat, lon, square) {
     const { topLeft, bottomRight } = square;
@@ -63,6 +64,28 @@ function isShipPathInDangerousSquare(shipPath, square) {
     return false; // Path does not intersect with the square
 }
 
+async function isShipAffected(vesselId, news) {
+    const square = {
+        topLeft: {lat: news.latitude1, lon: news.longitude1},
+        bottomRight: {lat: news.latitude2, lon: news.longitude2}
+    }
+
+    const vesselData = await fetchSpecificVesselDataID(vesselId);
+    // Iterate over the routes in vesselData
+    for (let i = 0; i < vesselData.routes.length - 1; i++) {
+        // Get the current point and the next point
+        const start = vesselData.routes[i];
+        const end = vesselData.routes[i + 1];
+        
+        // Check if the ship path is in the dangerous square
+        if (isShipPathInDangerousSquare([start, end], square)) {
+            return true; // Return true if any segment is in danger
+        }
+    }
+
+    return false;
+}
+
 // Example usage
 const dangerousSquare = {
     topLeft: { lat: 20, lon: 30 },
@@ -79,4 +102,5 @@ console.log(result ? "Ship path enters the dangerous square." : "Ship path is sa
 
 module.exports = {
     isShipPathInDangerousSquare,
+    isShipAffected
 };

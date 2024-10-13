@@ -12,27 +12,83 @@ admin.initializeApp({
 const db = admin.firestore();
 
 // NEWS RELATED //////////////////////////////////////
-const addNewsData = async (crisisData) => {
+const addNewsData = async (newsData) => {
   try {
     // Ensure no undefined or invalid values in the data
-    if (!crisisData || !crisisData.title || !crisisData.area || typeof crisisData.delayInHours !== 'number') {
+    if (!newsData || !newsData.title || !newsData.area) {
       throw new Error("Invalid data structure");
     }
-    const docRef = await db.collection('crises').add(crisisData);
+    const docRef = await db.collection('news').add(newsData);
     console.log('Document written with ID: ', docRef.id);
   } catch (error) {
     console.error('Error adding document: ', error.message);
   }
 };
 
+const fetchNewsState = async (title) => {
+  try {
+    // Query the Firestore collection to find the document by title
+    const querySnapshot = await db.collection('news').where('title', '==', title).get();
+
+    if (!querySnapshot.empty) {
+      const doc = querySnapshot.docs[0];
+      return doc.accepted;
+    } else {
+      throw new Error(`No article found with the title "${title}".`);
+    }
+  } catch (error) {
+    console.error("Error updating article:", error);
+    throw new Error("Error updating article.");
+  }
+}
+
+const updateNewsAccept = async (title, accepted) => {
+  try {
+    // Query the Firestore collection to find the document by title
+    const querySnapshot = await db.collection('news').where('title', '==', title).get();
+
+    if (!querySnapshot.empty) {
+      const doc = querySnapshot.docs[0];
+      await doc.ref.update({ accepted });
+
+      if (!accepted){
+        await doc.ref.delete();
+        return { message: `Article titled "${title}" deleted successfully.` };
+      }
+      return { message: `Article titled "${title}" updated successfully.` };
+    } else {
+      throw new Error(`No article found with the title "${title}".`);
+    }
+  } catch (error) {
+    console.error("Error updating article:", error);
+    throw new Error("Error updating article.");
+  }
+}
+
 const fetchAllNewsData = async () => {
   try {
-    const querySnapshot = await db.collection('crises').get();
-    const crises = querySnapshot.docs.map(doc => doc.data());
-    return crises;
+    const querySnapshot = await db.collection('news').get();
+    const news = querySnapshot.docs.map(doc => doc.data());
+    return news;
   } catch (error) {
     console.error('Error fetching documents: ', error);
     return [];
+  }
+};
+
+const checkNewsExists = async (inputTitle) => {
+  try {
+    const yourCollectionRef = db.collection('news');
+    const querySnapshot = await yourCollectionRef.where("title", "==", inputTitle).get();
+    
+    if (!querySnapshot.empty) {
+      return true; // Document exists
+    } else {
+      return false; // No document found
+    }
+  } catch (error) {
+    console.error("Error checking document:", error);
+    return false;
   }
 };
 
@@ -42,23 +98,33 @@ const fetchSpecificVesselDataName = async (shipName) => {
     const snapshot = await db.collection("vesselData").where("info.ShipName", "==", shipName).get();
 
     if (snapshot.empty) {
-        console.error('No matching documents found!');
+      console.error('No matching documents found!');
     }
 
-    snapshot.forEach(doc => {
-        console.log('Document data:', doc.id, '=>', doc.data());
-        // Process each document data as needed
-    });
+    // Get the first document
+    const doc = snapshot.docs[0];
+    const shipData = doc.data(); // Get the document data
+
+    return shipData;
   } catch (error) {
     console.error('Error adding document: ', error.message);
   }
 };
 
+async function saveVesselData(vessel) {
+  try {
+      const docRef = db.collection("vesselData").doc(`vessel_${vessel.info.MMSI}`); // Create document reference
+      await docRef.set(vessel);
+      console.log("Document written with ID: ", docRef.id);
+  } catch (error) {
+      console.error("Error adding document: ", error);
+  }
+}
+
 async function fetchSpecificVesselDataID(mmsi) {
     try {
         const docRef = db.collection("vesselData").doc(`vessel_${mmsi}`);
         const doc = await docRef.get();
-
         if (!doc.exists) {
             console.error('No matching documents found!');
         } else {
@@ -81,9 +147,29 @@ const fetchAllVesselData = async () => {
   }
 };
 
-const updateSpecificVesselData = async (vessel) => {
+//update each vessel's route by 1
+const updateSpecificVesselData = async (vesselId) => {
   try {
-    
+    const vesselData = await fetchSpecificVesselDataID(vesselId); // Make sure to use vesselId instead of mmsi
+
+    if (vesselData && vesselData.routes && vesselData.routes.length > 0) {
+      // Remove the first element (index 0)
+      const updatedRoutes = vesselData.routes.slice(1);
+
+      // Update the vessel data with the new routes
+      const updatedVesselData = {
+        ...vesselData,
+        routes: updatedRoutes,
+      };
+
+      // Update the document in Firestore
+      const docRef = db.collection("vesselData").doc(`vessel_${vesselId}`);
+      await docRef.update(updatedVesselData); // Directly pass updatedVesselData
+
+      console.log('Vessel data updated successfully!');
+    } else {
+      console.warn('No routes to update for vessel:', vesselId);
+    }
   } catch (error) {
     console.error('Error adding document: ', error.message);
   }
@@ -200,21 +286,68 @@ const fetchAllByPortAppointmentData = async (portName) => {
     }
   };
 
-const updateSpecificAppointmentData = async (appointment) => {
+const fetchAllAppointmentData = async () => {
   try {
-    
+    const querySnapshot = await db.collection('appointment').get();
+    const appointments = querySnapshot.docs.map(doc => doc.data());
+    return appointments;
   } catch (error) {
-    console.error('Error adding document: ', error.message);
+    console.error('Error fetching document: ', error.message);
   }
 };
 
-const addAppointmentData = async (appointment) => {
+const updateAppointments = async (currentDateTime) => {
   try {
-    
+    const appointmentsSnapshot = await db.collection("appointment").get();
+    const cutoffTime = new Date(currentDateTime.getTime() - 6 * 60 * 60 * 1000);
+
+    if (appointmentsSnapshot.empty) {
+      console.log("No appointments found.");
+      return;
+    }
+
+    await Promise.all(
+      appointmentsSnapshot.docs.map(async (appointmentDoc) => {
+        const appointmentData = appointmentDoc.data();
+        const appointmentDateTime = new Date(appointmentData.dateTime); // Assumes Firestore Timestamp
+
+        // Check if appointment is older than cutoffTime
+        if (appointmentDateTime < cutoffTime) {
+          try {
+            // Attempt to delete the appointment
+            await appointmentDoc.ref.delete().then(msg => console.log(msg));
+            console.log(`Successfully deleted appointment with ID: ${appointmentDoc.id}`);
+          } catch (deleteError) {
+            console.error(`Failed to delete appointment with ID: ${appointmentDoc.id}`, deleteError);
+          }
+        }
+      })
+    );
+
+    console.log("Old appointments processed.");
   } catch (error) {
-    console.error('Error adding document: ', error.message);
+    console.error("Error updating appointments:", error);
   }
 };
+
+
+updateAppointments(new Date("2024-09-01T07:00:00.000Z"));
+
 
 // Export the functions for use in other files
-module.exports = {fetchSpecificVesselDataID, fetchAllVesselData, updateSpecificVesselData, addRecordData, fetchSpecificRecordData, fetchAllByNewsRecordData, addNewsData, fetchAllNewsData, fetchAllByPortAppointmentData, fetchSpecificAppointmentData, updateSpecificAppointmentData, addAppointmentData, db}
+module.exports = {updateAppointments,
+                  fetchAllAppointmentData,
+                  fetchSpecificVesselDataID, 
+                  fetchSpecificVesselDataName,
+                  fetchAllVesselData, 
+                  updateSpecificVesselData, 
+                  addRecordData, 
+                  fetchSpecificRecordData, 
+                  fetchAllByNewsRecordData, 
+                  addNewsData, 
+                  fetchNewsState,
+                  updateNewsAccept,
+                  fetchAllNewsData, 
+                  saveVesselData,
+                  fetchAllByPortAppointmentData, 
+                  fetchSpecificAppointmentData}
