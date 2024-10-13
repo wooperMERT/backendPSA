@@ -36,6 +36,30 @@ const fetchAllNewsData = async () => {
   }
 };
 
+const checkIfDocumentExists = async (input1) => {
+  try {
+    // Define the collection you want to search in, e.g., "yourCollection"
+    const yourCollectionRef = collection(db, "yourCollection");
+  
+    const q = query(yourCollectionRef, where("yourField", "==", input1));
+    
+    // Execute the query
+    const querySnapshot = await getDocs(q);
+    
+    // Check if there are any documents with the same attribute
+    if (!querySnapshot.empty) {
+      console.log("Document with matching attribute found.");
+      return true; // Document exists
+    } else {
+      console.log("No document with matching attribute found.");
+      return false; // No document found
+    }
+  } catch (error) {
+    console.error("Error checking document:", error);
+    return false; // Handle error scenario
+  }
+};
+
 // VESSEL RELATED //////////////////////////////////////
 const fetchSpecificVesselDataName = async (shipName) => {
   try {
