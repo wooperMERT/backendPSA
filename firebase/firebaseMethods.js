@@ -15,7 +15,7 @@ const db = admin.firestore();
 const addNewsData = async (newsData) => {
   try {
     // Ensure no undefined or invalid values in the data
-    if (!newsData || !newsData.title || !newsData.area || typeof newsData.delayInHours !== 'number') {
+    if (!newsData || !newsData.title || !newsData.area) {
       throw new Error("Invalid data structure");
     }
     const docRef = await db.collection('news').add(newsData);
@@ -262,24 +262,58 @@ const fetchAllByPortAppointmentData = async (portName) => {
     }
   };
 
-const updateSpecificAppointmentData = async (appointment) => {
+const fetchAllAppointmentData = async () => {
   try {
-    
+    const querySnapshot = await db.collection('appointment').get();
+    const appointments = querySnapshot.docs.map(doc => doc.data());
+    return appointments;
   } catch (error) {
-    console.error('Error adding document: ', error.message);
+    console.error('Error fetching document: ', error.message);
   }
 };
 
-const addAppointmentData = async (appointment) => {
+const updateAppointments = async (currentDateTime) => {
   try {
-    
+    const appointmentsSnapshot = await db.collection("appointment").get();
+    const cutoffTime = new Date(currentDateTime.getTime() - 6 * 60 * 60 * 1000);
+
+    if (appointmentsSnapshot.empty) {
+      console.log("No appointments found.");
+      return;
+    }
+
+    await Promise.all(
+      appointmentsSnapshot.docs.map(async (appointmentDoc) => {
+        const appointmentData = appointmentDoc.data();
+        const appointmentDateTime = new Date(appointmentData.dateTime); // Assumes Firestore Timestamp
+
+        // Check if appointment is older than cutoffTime
+        if (appointmentDateTime < cutoffTime) {
+          try {
+            // Attempt to delete the appointment
+            await appointmentDoc.ref.delete().then(msg => console.log(msg));
+            console.log(`Successfully deleted appointment with ID: ${appointmentDoc.id}`);
+          } catch (deleteError) {
+            console.error(`Failed to delete appointment with ID: ${appointmentDoc.id}`, deleteError);
+          }
+        }
+      })
+    );
+
+    console.log("Old appointments processed.");
   } catch (error) {
-    console.error('Error adding document: ', error.message);
+    console.error("Error updating appointments:", error);
   }
 };
+
+
+updateAppointments(new Date("2024-09-01T07:00:00.000Z"));
+
 
 // Export the functions for use in other files
-module.exports = {fetchSpecificVesselDataID, 
+module.exports = {updateAppointments,
+                  fetchAllAppointmentData,
+                  fetchSpecificVesselDataID, 
                   fetchSpecificVesselDataName,
                   fetchAllVesselData, 
                   updateSpecificVesselData, 
@@ -292,6 +326,4 @@ module.exports = {fetchSpecificVesselDataID,
                   fetchAllNewsData, 
                   saveVesselData,
                   fetchAllByPortAppointmentData, 
-                  fetchSpecificAppointmentData, 
-                  updateSpecificAppointmentData, 
-                  addAppointmentData}
+                  fetchSpecificAppointmentData}

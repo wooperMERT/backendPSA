@@ -1,7 +1,7 @@
 const axios = require('axios');
 const APIkeys = require('../APIkeys.json');
 
-const { checkNewsExists } = require('../firebase/firebaseMethods');
+const { addNewsData } = require('../firebase/firebaseMethods');
 
 const BASE_URL = 'https://newsapi.org/v2/everything'; // Base URL for the API
 const NEWS_API_KEY = APIkeys.NEWS_API_KEY;
@@ -82,6 +82,7 @@ const queryMultipleOpenAI = async (articles) => {
                 latitude2: items[4],
                 longitude2: items[5],
                 strait: items[6],
+                accepted: false,
             };
         })
     );
@@ -96,9 +97,15 @@ const getSignificantAndNewArticles = async (timeIn, timeOut) => {
     return articlesFinal;
 };
 
+const updateNewsData = async (currentDateTime) => {
+    const startString = currentDateTime.toISOString().split('.')[0] + 'Z';
+    const endDateTime = new Date(currentDateTime);
+    const endString = endDateTime.toISOString().split('.')[0] + 'Z';
+    const articles = await getSignificantAndNewArticles(startString, endString);
+    articles.forEach(element => {
+        addNewsData(element);
+    });
+}
 
-const articles = getSignificantAndNewArticles("2024-10-01T00:00:00Z", "22024-10-05T23:59:59Z");
-//console.log(articles);
-
-module.exports = { getSignificantAndNewArticles };
+module.exports = { getSignificantAndNewArticles, updateNewsData };
 //runProcess("2024-10-10T00:00:00Z", "2024-11-10T23:59:59Z", "weather");
