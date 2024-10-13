@@ -10,6 +10,11 @@ const recordRouter = require('./routes/record');
 const vesselRouter = require('./routes/vessel')
 const newsRouter = require('./routes/news');
 
+// Time
+const currentDateTime = new Date('2024-10-13T10:30:00Z');
+const increaseTime = () => {currentDateTime.setHours(currentDateTime.getHours() + 1);};
+
+
 // Middleware
 app.use(express.json()); // Parse incoming JSON
 dotenv.config(); // Load .env into environment variables
@@ -49,8 +54,7 @@ wss.on('connection', (ws) => {
 });
 
 const broadcastMessage = () => {
-    const message = JSON.stringify({ message: 'Hello from the server', timestamp: new Date() });
-
+    const message = JSON.stringify({ message: 'Hello from the server', timestamp:  currentDateTime});
     clients.forEach(client => {
         if (client.readyState === WebSocket.OPEN) {
             client.send(message);

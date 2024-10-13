@@ -12,13 +12,13 @@ admin.initializeApp({
 const db = admin.firestore();
 
 // NEWS RELATED //////////////////////////////////////
-const addNewsData = async (crisisData) => {
+const addNewsData = async (newsData) => {
   try {
     // Ensure no undefined or invalid values in the data
-    if (!crisisData || !crisisData.title || !crisisData.area || typeof crisisData.delayInHours !== 'number') {
+    if (!newsData || !newsData.title || !newsData.area || typeof newsData.delayInHours !== 'number') {
       throw new Error("Invalid data structure");
     }
-    const docRef = await db.collection('news').add(crisisData);
+    const docRef = await db.collection('news').add(newsData);
     console.log('Document written with ID: ', docRef.id);
   } catch (error) {
     console.error('Error adding document: ', error.message);
@@ -62,36 +62,28 @@ const updateNewsAccept = async (title, accepted) => {
 
 const fetchAllNewsData = async () => {
   try {
-    const querySnapshot = await db.collection('crises').get();
-    const crises = querySnapshot.docs.map(doc => doc.data());
-    return crises;
+    const querySnapshot = await db.collection('news').get();
+    const news = querySnapshot.docs.map(doc => doc.data());
+    return news;
   } catch (error) {
     console.error('Error fetching documents: ', error);
     return [];
   }
 };
 
-const checkIfDocumentExists = async (input1) => {
+const checkNewsExists = async (inputTitle) => {
   try {
-    // Define the collection you want to search in, e.g., "yourCollection"
-    const yourCollectionRef = collection(db, "yourCollection");
-  
-    const q = query(yourCollectionRef, where("yourField", "==", input1));
+    const yourCollectionRef = db.collection('news');
+    const querySnapshot = await yourCollectionRef.where("title", "==", inputTitle).get();
     
-    // Execute the query
-    const querySnapshot = await getDocs(q);
-    
-    // Check if there are any documents with the same attribute
     if (!querySnapshot.empty) {
-      console.log("Document with matching attribute found.");
       return true; // Document exists
     } else {
-      console.log("No document with matching attribute found.");
       return false; // No document found
     }
   } catch (error) {
     console.error("Error checking document:", error);
-    return false; // Handle error scenario
+    return false;
   }
 };
 

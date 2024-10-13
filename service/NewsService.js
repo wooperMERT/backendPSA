@@ -1,13 +1,15 @@
 const axios = require('axios');
-const APIkeys = require('..APIkeys.json');
+const APIkeys = require('../APIkeys.json');
+
+const { checkNewsExists } = require('../firebase/firebaseMethods');
 
 const BASE_URL = 'https://newsapi.org/v2/everything'; // Base URL for the API
-const NEWS_API_KEY = APIkeys.NEWS_API_KEY; 
+const NEWS_API_KEY = APIkeys.NEWS_API_KEY;
 const OPENAI_API_KEY = APIkeys.OPENAI_API_KEY;
 
 
 const baseQuery = 'You are a manager for a shipping company. You will be provided with the following news content and judge whether does the event is significant enough to close down a sea route for your ship. Map out a square area to showcase the affected area. Only reply me one of these 2 answers. Reply me "signficiant-%area%-%latitude1%-%longitude1%-%latitude2%-%longitude2%-%strait%" if it is significant, where %strait% is the strait where the event is happening (or the closest strait), where %area% is the name of the affected area, where %longitude1% and %latitude1% are the coordinates to represent the top left corner of the affected square, where %longitude2% and %latitude2% are the coordinates to represent the bottom right corner of the affected square. Reply me "insigificant" if it is not significant.'
-const category = 'weather, maritime, sea';
+const category = 'weather';
 
 // Function to fetch news for a specific date and category
 const fetchNewsByDateRangeAndCategory = async (startDateTime, endDateTime) => {
@@ -86,14 +88,17 @@ const queryMultipleOpenAI = async (articles) => {
     return updatedArticles.filter(article => article.significant);
 }
 
-const getSignificantArticles = async (timeIn, timeOut) => {
+const getSignificantAndNewArticles = async (timeIn, timeOut) => {
     const articles = await fetchNewsByDateRangeAndCategory(timeIn, timeOut);
     if (!articles) { return; }
     const articlesFinal = await queryMultipleOpenAI(articles);
     if (!articlesFinal) { return; }
-    //console.log(articlesFinal);
     return articlesFinal;
 };
 
-module.exports = {getSignificantArticles};
+
+const articles = getSignificantAndNewArticles("2024-10-01T00:00:00Z", "22024-10-05T23:59:59Z");
+//console.log(articles);
+
+module.exports = { getSignificantAndNewArticles };
 //runProcess("2024-10-10T00:00:00Z", "2024-11-10T23:59:59Z", "weather");
