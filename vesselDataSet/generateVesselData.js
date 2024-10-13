@@ -134,7 +134,7 @@ const vesselData = Array.from({ length: 100 }, () => {
 
     return {
         portStops: portStopsWithETA,
-        routes: generateRoute(portStops),
+        routes: generateVesselRoute(portStops),
         info: {
             MMSI: Math.floor(Math.random() * (999999999 - 200000000 + 1)) + 200000000,
             ShipName: faker.company.name(),
