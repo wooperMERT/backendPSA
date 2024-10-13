@@ -12,7 +12,6 @@ router.post('/updateAccept', async (req, res) => {
   const { title, accepted } = req.body;
   // Logic to handle reroute recommendation
 
-  console.log("hi");
   const news = await updateNewsAccept(title, accepted);
   res.json(news);
 })

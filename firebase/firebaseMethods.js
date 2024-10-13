@@ -50,6 +50,11 @@ const updateNewsAccept = async (title, accepted) => {
     if (!querySnapshot.empty) {
       const doc = querySnapshot.docs[0];
       await doc.ref.update({ accepted });
+
+      if (!accepted){
+        await doc.ref.delete();
+        return { message: `Article titled "${title}" deleted successfully.` };
+      }
       return { message: `Article titled "${title}" updated successfully.` };
     } else {
       throw new Error(`No article found with the title "${title}".`);
@@ -120,7 +125,6 @@ async function fetchSpecificVesselDataID(mmsi) {
     try {
         const docRef = db.collection("vesselData").doc(`vessel_${mmsi}`);
         const doc = await docRef.get();
-
         if (!doc.exists) {
             console.error('No matching documents found!');
         } else {
@@ -143,9 +147,29 @@ const fetchAllVesselData = async () => {
   }
 };
 
-const updateSpecificVesselData = async (vessel) => {
+//update each vessel's route by 1
+const updateSpecificVesselData = async (vesselId) => {
   try {
-    
+    const vesselData = await fetchSpecificVesselDataID(vesselId); // Make sure to use vesselId instead of mmsi
+
+    if (vesselData && vesselData.routes && vesselData.routes.length > 0) {
+      // Remove the first element (index 0)
+      const updatedRoutes = vesselData.routes.slice(1);
+
+      // Update the vessel data with the new routes
+      const updatedVesselData = {
+        ...vesselData,
+        routes: updatedRoutes,
+      };
+
+      // Update the document in Firestore
+      const docRef = db.collection("vesselData").doc(`vessel_${vesselId}`);
+      await docRef.update(updatedVesselData); // Directly pass updatedVesselData
+
+      console.log('Vessel data updated successfully!');
+    } else {
+      console.warn('No routes to update for vessel:', vesselId);
+    }
   } catch (error) {
     console.error('Error adding document: ', error.message);
   }
