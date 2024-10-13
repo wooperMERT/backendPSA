@@ -1,12 +1,11 @@
-import express from 'express';
-
+const express = require('express');
 const router = express.Router();
+const {fetchAllNewsData} = require('../firebase/firebaseMethods');
 
 // POST request to suggest a reroute for vessels
-router.post('/', (req, res) => {
-  const { vesselId, newRoute } = req.body;
-  // Logic to handle reroute recommendation
-  res.json({ message: `Reroute suggested for vessel ${vesselId} to ${newRoute}` });
+router.get('/', async (req, res) => {
+  const response = await fetchAllNewsData();
+  res.json(response);
 });
 
-export default router;
+module.exports = router;
