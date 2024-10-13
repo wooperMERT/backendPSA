@@ -75,3 +75,16 @@ app.use('/api/seaDistance', async (req, res) => {
 setInterval(broadcastMessage, 5000);
 
 console.log(`WebSocket server started on ws://localhost:${WEBSOCKET_PORT}`);
+
+
+
+
+
+
+const timeStepOver = async () => {
+    increaseTime(); //increase time variable
+    updateVesselData(); //update vessel moving
+    updateNewsData(); //receive new News and add to database
+    updateAppointments(); //update appointments that occured
+    
+}
