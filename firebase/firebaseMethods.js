@@ -105,14 +105,14 @@ const fetchSpecificRecordData = async (newsTitle) => {
     // Extract the document data
     const specificRecordsData = [];
     querySnapshot.forEach((docSnapshot) => {
-      console.log("Document data:", docSnapshot.data()); // Debugging output
+      //console.log("Document data:", docSnapshot.data()); // Debugging output
       specificRecordsData.push({
         recordId: docSnapshot.id,
         ...docSnapshot.data(),
       });
     });
 
-    console.log("Fetched specific records data:", specificRecordsData);
+    //console.log("Fetched specific records data:", specificRecordsData);
 
     return specificRecordsData;
   } catch (error) {
