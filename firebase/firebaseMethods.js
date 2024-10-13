@@ -58,13 +58,14 @@ const fetchSpecificVesselDataName = async (shipName) => {
     const snapshot = await db.collection("vesselData").where("info.ShipName", "==", shipName).get();
 
     if (snapshot.empty) {
-        console.error('No matching documents found!');
+      console.error('No matching documents found!');
     }
 
-    snapshot.forEach(doc => {
-        console.log('Document data:', doc.id, '=>', doc.data());
-        // Process each document data as needed
-    });
+    // Get the first document
+    const doc = snapshot.docs[0];
+    const shipData = doc.data(); // Get the document data
+
+    return shipData;
   } catch (error) {
     console.error('Error adding document: ', error.message);
   }
@@ -232,25 +233,4 @@ const addAppointmentData = async (appointment) => {
   }
 };
 
-// Export the functions for use in other files
-module.exports = {checkNewsExists, fetchSpecificVesselDataID, fetchAllVesselData, updateSpecificVesselData, addRecordData, fetchSpecificRecordData, fetchAllByNewsRecordData, addNewsData, fetchAllNewsData, fetchAllByPortAppointmentData, fetchSpecificAppointmentData, updateSpecificAppointmentData, addAppointmentData, db}
-
-/*
-// Example usage
-const newsDataExample = {
-  title: 'Hurricane Example',
-  description: 'Hurricane event in Florida.',
-  significant: true,
-  area: 'Florida',
-  delayInHours: 12,
-  latitude1: 30.00,
-  longitude1: -87.63,
-  latitude2: 40.00,
-  longitude2: -80.00,
-  publishedAt: new Date(),
-  accepted: false
-};
-
-// Call the storeCrisisData function to add a crisis
-addNewsData(newsDataExample);
-*/
+module.exports = {fetchSpecificVesselDataID, fetchSpecificVesselDataName,fetchAllVesselData, updateSpecificVesselData, addRecordData, fetchSpecificRecordData, fetchAllByNewsRecordData, addNewsData, fetchAllNewsData, fetchAllByPortAppointmentData, fetchSpecificAppointmentData, updateSpecificAppointmentData, addAppointmentData, db}
