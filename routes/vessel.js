@@ -6,7 +6,7 @@ const router = express.Router();
 // POST request to fetch all vessels
 router.post('/all', async (req, res) => {
   const data = await fetchAllVesselData();
-  console.log(data);
+  //console.log(data);
   res.json(data);
 });
 

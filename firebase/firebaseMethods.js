@@ -18,12 +18,47 @@ const addNewsData = async (crisisData) => {
     if (!crisisData || !crisisData.title || !crisisData.area || typeof crisisData.delayInHours !== 'number') {
       throw new Error("Invalid data structure");
     }
-    const docRef = await db.collection('crises').add(crisisData);
+    const docRef = await db.collection('news').add(crisisData);
     console.log('Document written with ID: ', docRef.id);
   } catch (error) {
     console.error('Error adding document: ', error.message);
   }
 };
+
+const fetchNewsState = async (title) => {
+  try {
+    // Query the Firestore collection to find the document by title
+    const querySnapshot = await db.collection('news').where('title', '==', title).get();
+
+    if (!querySnapshot.empty) {
+      const doc = querySnapshot.docs[0];
+      return doc.accepted;
+    } else {
+      throw new Error(`No article found with the title "${title}".`);
+    }
+  } catch (error) {
+    console.error("Error updating article:", error);
+    throw new Error("Error updating article.");
+  }
+}
+
+const updateNewsAccept = async (title, accepted) => {
+  try {
+    // Query the Firestore collection to find the document by title
+    const querySnapshot = await db.collection('news').where('title', '==', title).get();
+
+    if (!querySnapshot.empty) {
+      const doc = querySnapshot.docs[0];
+      await doc.ref.update({ accepted });
+      return { message: `Article titled "${title}" updated successfully.` };
+    } else {
+      throw new Error(`No article found with the title "${title}".`);
+    }
+  } catch (error) {
+    console.error("Error updating article:", error);
+    throw new Error("Error updating article.");
+  }
+}
 
 const fetchAllNewsData = async () => {
   try {
@@ -242,4 +277,18 @@ const addAppointmentData = async (appointment) => {
 };
 
 // Export the functions for use in other files
-module.exports = {fetchSpecificVesselDataID, fetchSpecificVesselDataName,fetchAllVesselData, updateSpecificVesselData, addRecordData, fetchSpecificRecordData, fetchAllByNewsRecordData, addNewsData, fetchAllNewsData, fetchAllByPortAppointmentData, fetchSpecificAppointmentData, updateSpecificAppointmentData, addAppointmentData, db}
+module.exports = {fetchSpecificVesselDataID, 
+                  fetchSpecificVesselDataName,
+                  fetchAllVesselData, 
+                  updateSpecificVesselData, 
+                  addRecordData, 
+                  fetchSpecificRecordData, 
+                  fetchAllByNewsRecordData, 
+                  addNewsData, 
+                  fetchNewsState,
+                  updateNewsAccept,
+                  fetchAllNewsData, 
+                  fetchAllByPortAppointmentData, 
+                  fetchSpecificAppointmentData, 
+                  updateSpecificAppointmentData, 
+                  addAppointmentData}
